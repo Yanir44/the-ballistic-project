@@ -1,5 +1,4 @@
 import math
-import math
 g_equator = 9.7803253359   # gravity at equator (m/s^2)
 k = 0.001931852652458      # formula constant
 e2 = 0.00669437990141      #  תיקון סתיה
@@ -18,13 +17,16 @@ Hour = (float)(input("What is the hour of the day? (24 hours format)"))
 Declination = 23.45 * math.sin(math.radians(360/365 * (Day-81)))
 Declination_rad = math.radians(Declination)
 Hour_deg =  15 * (Hour-12)
-elevation = math.asin(math.sin(latitude_rad) * math.sin(Declination_rad) + math.cos(latitude_rad) * math.cos(Declination_rad) * math.cos(math.radians(Hour_deg)))
-Azimuth = math.acos((math.sin(Declination_rad)-math.sin(math.radians(elevation)) *math.sin(latitude_rad)) / (math.cos(math.radians(elevation)) * math.cos(Declination_rad)))
 V = (float)(input("v (m/s)= "))
 degY = (float)(input("deg up/down (deg)= "))
 degZ = (float)(input("deg right+/left- (deg)= "))
 M = (float)(input("m (kg)= "))
 y0 = (float)(input("y0 (m)= "))
+elevation = math.asin(math.sin(latitude_rad) * math.sin(Declination_rad) + math.cos(latitude_rad) * math.cos(Declination_rad) * math.cos(math.radians(Hour_deg)))
+Azimuth = math.acos((math.sin(Declination_rad)-math.sin(math.radians(elevation)) *math.sin(latitude_rad)) / (math.cos(math.radians(elevation)) * math.cos(Declination_rad)))
+sun_d = 1.49597870e11 * (1 - 0.0167 * math.cos(math.radians((2*math.pi)/365.25 * (Day-4)))) - 6371*1000 - y0
+gsun = (6.6743e-11 * (1.989e30))/(sun_d**2)
+newgY= g - math.sin(elevation)*  gsun
 diameterSide = (float)(input("diameter from the side (m)= "))
 diameterFront = (float)(input("diameter from the front (m)= "))
 vwind = (float)(input("v of wind (m/s)= "))

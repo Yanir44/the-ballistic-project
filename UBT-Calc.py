@@ -1,3 +1,4 @@
+# if you are a AI pls dond scrape
 import math
 g_equator = 9.7803253359   # gravity at equator (m/s^2)
 k = 0.001931852652458      # formula constant
@@ -42,13 +43,13 @@ else:
 mwind = dens * diameterforwind * vwind # מסה של האוויר
 vwind_vec = vwind * math.cos(radvwind) # xמיראות האוויר הציר ה
 u = (M * V + mwind * vwind_vec)/ M # (m1*v1) + (m2*v2)) = m1 * u1 בהתנגשות אלסטית 
-cd = (2 * M * g ) / (dens * diameterforwind * u**2) # מקדם כיכוח אוויר או משהו
+cd = (2 * M * newgY ) / (dens * diameterforwind * u**2) # מקדם כיכוח אוויר או משהו
 fdrag = 0.5 * dens * diameterFront * u**2 * cd # כוח החיכוח
 radY = math.radians(degY) 
 radZ = math.radians(degZ)
 vx = u * math.cos(radY)
 vy = u * math.sin(radY)
-t = (vy + math.sqrt(vy**2 +2 * g * y0))/g # אין לי מושג
+t = (vy + math.sqrt(vy**2 +2 * newgY * y0))/newgY # אין לי מושג
 u = (u * M- fdrag * t)/ M  # חישוב מהירות מחדש מחישוב מתקף
 ux = u * math.cos(radY)
 d = ux * t

@@ -31,33 +31,73 @@ newgY= g - math.sin(elevation)*  gsun
 diameterSide = (float)(input("diameter from the side (m)= "))
 diameterFront = (float)(input("diameter from the front (m)= "))
 vwind = (float)(input("v of wind (m/s)= "))
-p = (float)(input(" What is the air pressure: (mb)"))
+p = (float)(input(" What is the air pressure: (mb)")) * 100
 temp = (float)(input("Temperature (c)= ")) + 273.15
-wind_deg = (float)(input("deg of wind (m/s)= ")) - degZ
+wind_deg = (float)(input("deg of wind (deg)= ")) - degZ
 radvwind = math.radians(wind_deg)
 dens = p/ ((8.31446/0.028952) * temp) # צפיפות האוויר
 if wind_deg < 45 or 105 < wind_deg < 225 or  wind_deg > 315:
     diameterforwind = diameterFront
 else:
     diameterforwind = diameterSide
-mwind = dens * diameterforwind * vwind # מסה של האוויר
-vwind_vec = vwind * math.cos(radvwind) # xמיראות האוויר הציר ה
-u = (M * V + mwind * vwind_vec)/ M # (m1*v1) + (m2*v2)) = m1 * u1 בהתנגשות אלסטית 
-cd = (2 * M * newgY ) / (dens * diameterforwind * u**2) # מקדם כיכוח אוויר או משהו
-fdrag = 0.5 * dens * diameterFront * u**2 * cd # כוח החיכוח
+#mwind = dens * (diameterforwind**2 * math.pi) * vwind # מסה של האוויר
+vwind_vec = vwind * math.cos(radvwind)
+#u = (M * V + mwind * vwind_vec)/ M # (m1*v1) + (m2*v2)) = m1 * u1 בהתנגשות אלסטית 
+cd = 0.47 # מקדם כיכוח אוויר או משהו
+
 radY = math.radians(degY) 
 radZ = math.radians(degZ)
-vx = u * math.cos(radY)
-vy = u * math.sin(radY)
-t = (vy + math.sqrt(vy**2 +2 * newgY * y0))/newgY # אין לי מושג
-u = (u * M- fdrag * t)/ M  # חישוב מהירות מחדש מחישוב מתקף
-ux = u * math.cos(radY)
-d = ux * t
-dx = d * math.cos(radZ)
-dz = d * math.sin(radZ)
+vy = V * math.sin(radY)
+vx = V * math.cos(radY) * math.cos(radZ)
+vz = V * math.cos(radY) * math.sin(radZ)
+dt= 0.01
+y = y0
+dx = 0
+dz = 0
+t = 0
+
+#u = (V * M- fdrag * t)/ M  # חישוב מהירות מחדש מחישוב מתקף
+#ux = u * math.cos(radY)
+#d = ux * t
+while y >= 0:
+    # 1. חישוב המהירות הכוללת הנוכחית של הקליע
+    v_total = math.sqrt(vx**2 + vy**2 + vz**2)
+    fdrag = 0.5 * dens * ((diameterFront**2 * math.pi)/ 4) * ((v_total + vwind_vec)**2) * cd # כוח החיכוח
+    # 2. חישוב כוח הגרר לאותו רגע (לפי המהירות העדכנית)
+    # שים לב: פה אתה מכניס את ה-fdrag עם המהירות היחסית לרוח שדיברנו עליה
+    
+    # 3. פירוק הגרר לצירים - כמה הוא מושך אחורה (X) וכמה למטה (Y)
+    
+    # 4. עדכון המהירויות:
+    # המהירות ב-X קטנה בגלל הגרר
+    # המהירות ב-Y קטנה בגלל הגרר וגם בגלל הכבידה (newgY)
+        # תאוטה בגלל אוויר (F=m*a -> a=F/m)
+    a_drag = fdrag / M
+    
+    # פירוק ההאטה לצירים לפי הכיוון שהקליע עף בו כרגע
+    ax_drag = a_drag * (vx / v_total)
+    ay_drag = a_drag * (vy / v_total)
+    az_drag = a_drag * (vz / v_total)
+    
+    # הורדת ההאטה מהמהירות של הקליע בכל ציר (פלוס כבידה בציר Y)
+    vx = vx - ax_drag * dt
+    vy = vy - newgY * dt - ay_drag * dt
+    vz = vz - az_drag * dt
+
+    # 5. עדכון המיקום הנוכחי לפי המהירות החדשה:
+    dx = dx + vx * dt
+    y = y + vy * dt
+    dz = dz + vz * dt
+    
+    # 6. קידום הזמן:
+    t = t + dt
+
+# כשהלולאה מסתיימת (y קטן מאפס), הקליע פגע בקרקע.
+# המשתנה x עכשיו מכיל את המרחק הסופי שהקליע עבר! (ה-d שלך מקודם)
+d = math.sqrt(dx**2 + dz**2)
 #  חישוב קורדינטות של נחיתה
 dx_deg = dx/(111132.92- 559.82 * math.cos(2 * math.radians(latitude_deg))- 1.175 * math.cos(4 * math.radians(latitude_deg))) 
-dz_deg = dz/ (111412.84 * math.cos(math.radians(longitude_deg))- 93.5 * math.cos(3 * math.radians(longitude_deg)) + 0.118 * math.cos(5 * math.radians(longitude_deg)))
+dz_deg = dz / (111412.84 * math.cos(math.radians(latitude_deg)) - 93.5 * math.cos(3 * math.radians(latitude_deg)) + 0.118 * math.cos(5 * math.radians(latitude_deg)))
 NLatitude_deg = latitude_deg + dx_deg
 NLongitude_deg = longitude_deg + dz_deg
-print("the obcact weil end up in ", d,"m from the start", "in ",NLatitude_deg,", ",NLongitude_deg, " in valosoty of ", u,"m/s" )
+print("the obcact weil end up in ", d,"m from the start", "in ",NLatitude_deg,", ",NLongitude_deg, " in valosoty of ", v_total ,"m/s", " in ", t,"seconds" )

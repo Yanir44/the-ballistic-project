@@ -9,30 +9,31 @@ def calc_gravity(latitude_deg): #  אגדרת פונקציה לחישוב כוח
     g = g_equator * (1 + k * sin2) / math.sqrt(1 - e2 * sin2) # Somigliana equation for normal gravity
     return g # g מחזיר 
 # שואל נתונים שבצד שמול   
-latitude_deg = (float)(input(" What is your latitude? (°): "))
+latitude_deg = (float)(input("What is your latitude? (°): "))
 latitude_rad = math.radians(latitude_deg)
-longitude_deg = (float)(input(" What is your longitude? (°): "))
+longitude_deg = (float)(input("What is your longitude? (°): "))
 g = calc_gravity(latitude_deg) # משתמש בפונקציה מקודם
 Day = (float)(input("What is the day of the year?"))
 Hour = (float)(input("What is the hour of the day? (24 hours format)"))
-Declination = 23.45 * math.sin(math.radians(360/365 * (Day-81)))
+Declination = 23.45 * math.sin(math.radians(360/365 * (Day-81))) # זווית נטיית השמש
 Declination_rad = math.radians(Declination)
-Hour_deg =  15 * (Hour-12)
+Hour_deg =  15 * (Hour-12) # זווית השעה
 V = (float)(input("v (m/s)= "))
 degY = (float)(input("deg up/down (deg)= "))
 degZ = (float)(input("deg right+/left- (deg)= "))
 M = (float)(input("m (kg)= "))
 y0 = (float)(input("y0 (m)= "))
-elevation = math.asin(math.sin(latitude_rad) * math.sin(Declination_rad) + math.cos(latitude_rad) * math.cos(Declination_rad) * math.cos(math.radians(Hour_deg)))
-Azimuth = math.acos((math.sin(Declination_rad)-math.sin(math.radians(elevation)) *math.sin(latitude_rad)) / (math.cos(math.radians(elevation)) * math.cos(Declination_rad)))
-sun_d = 1.49597870e11 * (1 - 0.0167 * math.cos(math.radians((2*math.pi)/365.25 * (Day-4)))) - 6371*1000 - y0
-gsun = (6.6743e-11 * (1.989e30))/(sun_d**2)
-newgY= g - math.sin(elevation)*  gsun
+elevation = math.asin(math.sin(latitude_rad) * math.sin(Declination_rad) + math.cos(latitude_rad) * math.cos(Declination_rad) * math.cos(math.radians(Hour_deg))) # זווית גובה השמש מעל האופק
+Azimuth = math.acos((math.sin(Declination_rad)-math.sin(math.radians(elevation)) *math.sin(latitude_rad)) / (math.cos(math.radians(elevation)) * math.cos(Declination_rad))) # זווית אזימוט השמש
+sun_d = 1.49597870e11 * (1 - 0.0167 * math.cos(math.radians((2*math.pi)/365.25 * (Day-4)))) - 6371*1000 - y0 # מרחק השמש
+gsun = (6.6743e-11 * (1.989e30))/(sun_d**2) # כוח המשיכה של השמש
+newgY= g - math.sin(elevation)*  gsun # כוח המשיכה המשקלל
 diameterSide = (float)(input("diameter from the side (m)= "))
 diameterFront = (float)(input("diameter from the front (m)= "))
+diameterbottom = (float)(input("diameter from the bottom (m)= "))
 vwind = (float)(input("v of wind (m/s)= "))
 p = (float)(input(" What is the air pressure: (mb)")) * 100
-temp = (float)(input("Temperature (c)= ")) + 273.15
+temp = (float)(input("Temperature (c)= ")) + 273.15 
 wind_deg = (float)(input("deg of wind (deg)= ")) - degZ
 radvwind = math.radians(wind_deg)
 dens = p/ ((8.31446/0.028952) * temp) # צפיפות האוויר
@@ -47,9 +48,12 @@ cd = 0.47 # מקדם כיכוח אוויר או משהו
 
 radY = math.radians(degY) 
 radZ = math.radians(degZ)
+# חילוק המהירות לארכים סקלרים
 vy = V * math.sin(radY)
-vx = V * math.cos(radY) * math.cos(radZ)
+vx = V * math.cos(radY) * math.cos(radZ) 
 vz = V * math.cos(radY) * math.sin(radZ)
+volume = (math.pi * diameterbottom**3)/6
+fbuoyancy = volume * dens * g # כוח הציפה
 dt= 0.01
 y = y0
 dx = 0
@@ -59,41 +63,33 @@ t = 0
 #u = (V * M- fdrag * t)/ M  # חישוב מהירות מחדש מחישוב מתקף
 #ux = u * math.cos(radY)
 #d = ux * t
-while y >= 0:
+while y >0:
     # 1. חישוב המהירות הכוללת הנוכחית של הקליע
     v_total = math.sqrt(vx**2 + vy**2 + vz**2)
     fdrag = 0.5 * dens * ((diameterFront**2 * math.pi)/ 4) * ((v_total + vwind_vec)**2) * cd # כוח החיכוח
+   
     # 2. חישוב כוח הגרר לאותו רגע (לפי המהירות העדכנית)
-    # שים לב: פה אתה מכניס את ה-fdrag עם המהירות היחסית לרוח שדיברנו עליה
+    dh = (fbuoyancy * dt) / (M*g) 
     
-    # 3. פירוק הגרר לצירים - כמה הוא מושך אחורה (X) וכמה למטה (Y)
-    
-    # 4. עדכון המהירויות:
-    # המהירות ב-X קטנה בגלל הגרר
-    # המהירות ב-Y קטנה בגלל הגרר וגם בגלל הכבידה (newgY)
-        # תאוטה בגלל אוויר (F=m*a -> a=F/m)
+    # 3. עדכון המהירויות:
+    # תאוטה בגלל אוויר (F=m*a -> a=F/m)
     a_drag = fdrag / M
-    
-    # פירוק ההאטה לצירים לפי הכיוון שהקליע עף בו כרגע
+    # פירוק הגרר לצירים
     ax_drag = a_drag * (vx / v_total)
     ay_drag = a_drag * (vy / v_total)
     az_drag = a_drag * (vz / v_total)
-    
-    # הורדת ההאטה מהמהירות של הקליע בכל ציר (פלוס כבידה בציר Y)
+    # חישוב מהירות מחדש לפי הכוחות
     vx = vx - ax_drag * dt
     vy = vy - newgY * dt - ay_drag * dt
     vz = vz - az_drag * dt
 
     # 5. עדכון המיקום הנוכחי לפי המהירות החדשה:
     dx = dx + vx * dt
-    y = y + vy * dt
+    y = y + vy * dt + dh
     dz = dz + vz * dt
     
     # 6. קידום הזמן:
     t = t + dt
-
-# כשהלולאה מסתיימת (y קטן מאפס), הקליע פגע בקרקע.
-# המשתנה x עכשיו מכיל את המרחק הסופי שהקליע עבר! (ה-d שלך מקודם)
 d = math.sqrt(dx**2 + dz**2)
 #  חישוב קורדינטות של נחיתה
 dx_deg = dx/(111132.92- 559.82 * math.cos(2 * math.radians(latitude_deg))- 1.175 * math.cos(4 * math.radians(latitude_deg))) 

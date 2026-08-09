@@ -18,9 +18,12 @@ Hour = (float)(input("What is the hour of the day? (24 hours format)"))
 Declination = 23.45 * math.sin(math.radians(360/365 * (Day-81))) # זווית נטיית השמש
 Declination_rad = math.radians(Declination)
 Hour_deg =  15 * (Hour-12) # זווית השעה
+v_rotation = 465.2* (math.cos(latitude_rad))
 V = (float)(input("v (m/s)= "))
 degY = (float)(input("deg up/down (deg)= "))
 degZ = (float)(input("deg right+/left- (deg)= "))
+v_rotation_with = v_rotation * math.sin(math.radians(degZ))
+v_rotation_against = v_rotation * math.cos(math.radians(degZ))
 M = (float)(input("m (kg)= "))
 y0 = (float)(input("y0 (m)= "))
 elevation = math.asin(math.sin(latitude_rad) * math.sin(Declination_rad) + math.cos(latitude_rad) * math.cos(Declination_rad) * math.cos(math.radians(Hour_deg))) # זווית גובה השמש מעל האופק
@@ -91,9 +94,11 @@ while y >0:
     # 6. קידום הזמן:
     t = t + dt
 d = math.sqrt(dx**2 + dz**2)
+d_local = d
+d_invariant =  math.sqrt((dx + v_rotation_with / t)**2 + (dz + v_rotation_against / t)**2)
 #  חישוב קורדינטות של נחיתה
 dx_deg = dx/(111132.92- 559.82 * math.cos(2 * math.radians(latitude_deg))- 1.175 * math.cos(4 * math.radians(latitude_deg))) 
 dz_deg = dz / (111412.84 * math.cos(math.radians(latitude_deg)) - 93.5 * math.cos(3 * math.radians(latitude_deg)) + 0.118 * math.cos(5 * math.radians(latitude_deg)))
 NLatitude_deg = latitude_deg + dx_deg
 NLongitude_deg = longitude_deg + dz_deg
-print("the obcact weil end up in ", d,"m from the start", "in ",NLatitude_deg,", ",NLongitude_deg, " in valosoty of ", v_total ,"m/s", " in ", t,"seconds" )
+print("the obcact weil end up in ", d,"m from the start", "in ",NLatitude_deg,", ",NLongitude_deg, " in valosoty of ", v_total ,"m/s", " in ", t,"seconds", "and traveled ", d_invariant, "m in the reference of the solar system" )

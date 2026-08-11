@@ -5,6 +5,7 @@ export default defineConfig({
     format: 'es',
   },
   optimizeDeps: {
-    exclude: ['leaflet'],
+    include: ['leaflet'],
   },
 });
+

@@ -1,0 +1,24 @@
+{
+  "name": "physics-webapp-forfriend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/leaflet": "^1.9.22",
+    "@types/qrcode": "^1.5.6",
+    "typescript": "~6.0.2",
+    "vite": "^8.2.0"
+  },
+  "dependencies": {
+    "chart.js": "^4.5.1",
+    "katex": "^0.18.4",
+    "leaflet": "^1.9.4",
+    "lucide": "^1.31.0",
+    "qrcode": "^1.5.4"
+  }
+}
